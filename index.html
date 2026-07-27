@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#F7F3EC;
@@ -177,6 +178,7 @@
     </div>
     <div class="actions">
       <button class="ghost small" id="btn-export">Export backup (.json)</button>
+      <button class="ghost small" id="btn-export-excel">Export Excel (.xlsx)</button>
       <button class="ghost small" id="btn-import">Import backup</button>
       <input type="file" id="import-file" accept="application/json" style="display:none;">
     </div>
@@ -903,6 +905,46 @@
   document.getElementById('btn-export').addEventListener('click', () => {
     downloadFile('bar_ledger_backup_' + todayStr() + '.json', JSON.stringify(DB, null, 2), 'application/json');
   });
+  document.getElementById('btn-export-excel').addEventListener('click', () => {
+    if(typeof XLSX === 'undefined'){
+      alert('Excel export library failed to load (no internet access?). Try again when online.');
+      return;
+    }
+
+    const products = Object.values(DB.products);
+    const productRows = products.map(p => ({
+      'Barcode': p.barcode,
+      'Name': p.name,
+      'Category': p.category || '',
+      'Unit': p.unit,
+      'Stock Qty': p.stockQty,
+      'Avg Cost': Number(p.avgCost.toFixed(2)),
+      'Sell Price': Number((p.sellPrice||0).toFixed(2)),
+      'Low Stock At': p.lowStockThreshold,
+      'Stock Value': Number((p.stockQty * p.avgCost).toFixed(2)),
+    }));
+
+    const txRows = [...DB.transactions].sort((a,b)=>a.ts-b.ts).map(tx => ({
+      'Date': fmtDate(tx.ts),
+      'Type': tx.type,
+      'Barcode': tx.barcode,
+      'Product': tx.name,
+      'Qty': tx.qty,
+      'Unit Price': Number(tx.unitPrice.toFixed(2)),
+      'Total': Number(tx.total.toFixed(2)),
+      'Profit': tx.type === 'OUT' ? Number((tx.profit||0).toFixed(2)) : '',
+      'Stock After': tx.stockAfter,
+      'Note': tx.note || '',
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const wsProducts = XLSX.utils.json_to_sheet(productRows);
+    const wsLedger = XLSX.utils.json_to_sheet(txRows);
+    XLSX.utils.book_append_sheet(wb, wsProducts, 'Products');
+    XLSX.utils.book_append_sheet(wb, wsLedger, 'Ledger');
+    XLSX.writeFile(wb, 'bar_ledger_' + todayStr() + '.xlsx');
+  });
+
   document.getElementById('btn-import').addEventListener('click', () => {
     document.getElementById('import-file').click();
   });
