@@ -107,11 +107,12 @@
 
   .scan-row{ display:flex; gap:8px; }
   .scan-row input{ flex:1; }
-  #scanner-view{
-    display:none; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid var(--line-strong);
+  #scanner-view, #scanner-view-out{
+    display:block; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid var(--line-strong);
     position:relative; max-width:420px;
   }
-  #scanner-view video, #scanner-view canvas{ width:100%; display:block; }
+  #scanner-view video, #scanner-view canvas,
+  #scanner-view-out video, #scanner-view-out canvas{ width:100%; display:block; }
   .scan-flash{
     position:absolute; inset:0; background:rgba(47,107,79,0.35); opacity:0; pointer-events:none;
     transition:opacity 0.15s;
@@ -838,9 +839,20 @@
       inputStream: {
         type: "LiveStream",
         target: document.getElementById(containerId),
-        constraints: { facingMode: "environment" },
+        constraints: {
+          facingMode: "environment",
+          width: { min: 640, ideal: 1280, max: 1920 },
+          height: { min: 480, ideal: 720, max: 1080 },
+          aspectRatio: { min: 1, max: 2 },
+          advanced: [{ focusMode: "continuous" }],
+        },
+        area: { top: "15%", right: "10%", left: "10%", bottom: "15%" },
       },
+      locator: { patchSize: "medium", halfSample: true },
+      numOfWorkers: 2,
+      frequency: 10,
       decoder: { readers: ["ean_reader","ean_8_reader","upc_reader","upc_e_reader","code_128_reader"] },
+      locate: true,
     }, function(err){
       if(err){
         console.error(err);
@@ -852,6 +864,7 @@
       Quagga.start();
     });
 
+    Quagga.offDetected(onBarcodeDetected);
     Quagga.onDetected(onBarcodeDetected);
   }
 
