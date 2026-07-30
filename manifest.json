@@ -1,0 +1,15 @@
+{
+  "name": "Bar Ledger",
+  "short_name": "Bar Ledger",
+  "description": "Stock & accounting tool for the bar shop",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F7F3EC",
+  "theme_color": "#241B14",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
