@@ -1,6 +1,6 @@
 {
-  "name": "Bar Ledger By Amol",
-  "short_name": "Bar Ledger By Amol",
+  "name": "Bar Ledger by Amol",
+  "short_name": "Bar Ledger",
   "description": "Stock & accounting tool for the bar shop",
   "start_url": "./index.html",
   "scope": "./",
